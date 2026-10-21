@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1b7088">
+    <meta name="description" content="Acompanhe a contagem de dias letivos para as avaliações externas.">
+    <title>Contagem regressiva | Avaliações externas</title>
+    <link rel="icon" type="image/png" href="urei.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="javascript.js" defer></script>
+</head>
+<body>
+    <main class="painel">
+        <header class="cabecalho">
+            <img class="logo-institucional" src="urei.png" alt="Logotipo da Unidade Regional de Ensino de Itapetininga">
+            <h1>Contagem regressiva</h1>
+            <p class="subtitulo">Avaliações externas</p>
+            <div class="meta-controles">
+                <section class="meta" aria-label="Meta de desempenho">
+                    <h2>SARESP</h2>
+                    <p id="valorMetaSaresp">4,40</p>
+                    <h2>Meta Ouro</h2>
+                </section>
+                <button
+                    class="botao-meta"
+                    id="editarMetaSaresp"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="formularioMetaSaresp"
+                >
+                      <h2>SARESP</h2>
+                    <p id="valorMetaSaresp">4,60</p>
+                    <h2>Meta Diamante</h2>
+                </button>
+            </div>
+            <form class="formulario-meta" id="formularioMetaSaresp" hidden>
+                <label for="novoValorMetaSaresp">Nova meta SARESP</label>
+                <input id="novoValorMetaSaresp" name="meta" type="number" min="0" max="10" step="0.01" value="4.40" required>
+                <button class="botao-meta" type="submit">Salvar meta</button>
+                <button class="botao-meta botao-meta-secundario" id="cancelarEdicaoMeta" type="button">Cancelar</button>
+                <p id="statusMetaSaresp" role="status" aria-live="polite"></p>
+            </form>
+        
+        </header>
+
+        <section class="relogio" aria-labelledby="titulo-relogio">
+          <p></p>
+            <h2 id="titulo-relogio">Data e hora atual</h2>
+            <time id="dataHora" aria-live="off"></time>
+        </section>
+
+        <section class="avaliacoes" aria-label="Dias letivos restantes para as avaliações" data-data-inicial="2026-10-20">
+
+            
+          <article class="avaliacao">
+                <h1>SARESP</h1>
+                <p><strong>7</strong><span>dias letivos</span></p><p></p>(Do dia 28 de outubro ao dia 04 de dezembro)</p>
+                
+            </article>
+
+            <article class="avaliacao">
+                <h1>Provão Paulista</h1>
+                <p><strong>12</strong><span>dias letivos</span></p><p>(Do dia 4 ao dia 13 de novembro)</p>
+            </article>
+
+            <article class="avaliacao">
+                <h1>ENEM</h1>
+                <p><strong>15</strong><span>dias letivos</span></p><p>(Dias 8 e 15 de novembro)</p>
+            </article>
+
+        </section>
+
+        <p id="statusContagem" class="status-contagem" role="status" aria-live="polite">
+            Consultando feriados nacionais...
+        </p>
+    </main>
+</body>
+</html>
