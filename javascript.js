@@ -1,77 +1,92 @@
-const elementoDataHora = document.getElementById("dataHora");
-const elementoStatus = document.getElementById("statusContagem");
-const botaoEditarMeta = document.getElementById("editarMetaSaresp");
-const formularioMeta = document.getElementById("formularioMetaSaresp");
-const campoMeta = document.getElementById("novoValorMetaSaresp");
-const valorMeta = document.getElementById("valorMetaSaresp");
-const statusMeta = document.getElementById("statusMetaSaresp");
-const chaveMetaSaresp = "metaSaresp";
-const secaoAvaliacoes = document.querySelector(".avaliacoes");
-const cartoes = Array.from(document.querySelectorAll(".avaliacao"));
-const diasIniciaisPorCartao = new Map(
-    cartoes.map((cartao) => [cartao, Number(cartao.querySelector("strong").textContent)]),
-);
-const dataInicial = criarDataLocal(secaoAvaliacoes.dataset.dataInicial);
-const feriadosPorAno = new Map();
-const titulo = document.querySelector(".cabecalho h1");
-const formatadorDataHora = new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "medium",
-});
+var elementoDataHora = document.getElementById("dataHora");
+var elementoStatus = document.getElementById("statusContagem");
+var botaoEditarMeta = document.getElementById("editarMetaSaresp");
+var formularioMeta = document.getElementById("formularioMetaSaresp");
+var campoMeta = document.getElementById("novoValorMetaSaresp");
+var valorMeta = document.getElementById("valorMetaSaresp");
+var statusMeta = document.getElementById("statusMetaSaresp");
+var botaoCancelarMeta = document.getElementById("cancelarEdicaoMeta");
+var chaveMetaSaresp = "metaSaresp";
+var secaoAvaliacoes = document.querySelector(".avaliacoes");
+var cartoes = document.querySelectorAll(".avaliacao");
+var diasIniciaisPorCartao = [];
+var dataInicial;
+var titulo = document.querySelector(".cabecalho h1");
+
+for (var indiceCartao = 0; indiceCartao < cartoes.length; indiceCartao++) {
+    diasIniciaisPorCartao.push(Number(cartoes[indiceCartao].querySelector("strong").textContent));
+}
 
 function animarTextoEmLetras(elemento) {
-    const texto = elemento.textContent.trim();
-    elemento.setAttribute("aria-label", texto);
-    let indiceLetra = 0;
-    const fragmento = document.createDocumentFragment();
+    var texto = elemento.textContent.replace(/^\s+|\s+$/g, "");
+    var partes = texto.split(/(\s+)/);
+    var indiceLetra = 0;
+    var fragmento = document.createDocumentFragment();
 
-    texto.split(/(\s+)/u).forEach((parte) => {
-        if (/^\s+$/u.test(parte)) {
-            const espaco = document.createElement("span");
+    elemento.setAttribute("aria-label", texto);
+
+    for (var indiceParte = 0; indiceParte < partes.length; indiceParte++) {
+        var parte = partes[indiceParte];
+        if (/^\s+$/.test(parte)) {
+            var espaco = document.createElement("span");
             espaco.className = "espaco";
             espaco.setAttribute("aria-hidden", "true");
             espaco.textContent = parte;
-            fragmento.append(espaco);
-            return;
+            fragmento.appendChild(espaco);
+            continue;
         }
 
-        const palavra = document.createElement("span");
+        var palavra = document.createElement("span");
         palavra.className = "palavra";
         palavra.setAttribute("aria-hidden", "true");
 
-        Array.from(parte).forEach((letra) => {
-            const elementoLetra = document.createElement("span");
+        for (var indiceCaractere = 0; indiceCaractere < parte.length; indiceCaractere++) {
+            var elementoLetra = document.createElement("span");
             elementoLetra.className = "letra";
-            elementoLetra.style.setProperty("--indice-letra", indiceLetra);
-            elementoLetra.textContent = letra;
-            palavra.append(elementoLetra);
+            elementoLetra.style.animationDelay = (indiceLetra * 45) + "ms";
+            elementoLetra.style.webkitAnimationDelay = (indiceLetra * 45) + "ms";
+            elementoLetra.textContent = parte.charAt(indiceCaractere);
+            palavra.appendChild(elementoLetra);
             indiceLetra++;
-        });
+        }
 
-        fragmento.append(palavra);
-    });
+        fragmento.appendChild(palavra);
+    }
 
-    elemento.replaceChildren(fragmento);
+    while (elemento.firstChild) {
+        elemento.removeChild(elemento.firstChild);
+    }
+    elemento.appendChild(fragmento);
 }
 
 function animarLetrasTitulo() {
-    animarTextoEmLetras(titulo);
+    if (titulo) {
+        animarTextoEmLetras(titulo);
+    }
 }
 
 function animarLetrasCartoes() {
-    document.querySelectorAll(".avaliacao > p > span").forEach(animarTextoEmLetras);
+    var textos = document.querySelectorAll(".avaliacao > p > span");
+    for (var indiceTexto = 0; indiceTexto < textos.length; indiceTexto++) {
+        animarTextoEmLetras(textos[indiceTexto]);
+    }
 }
 
 function criarDataLocal(data) {
-    const [ano, mes, dia] = data.split("-").map(Number);
-    return new Date(ano, mes - 1, dia);
+    var partes = data.split("-");
+    return new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
 }
 
 function formatarDataLocal(data) {
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, "0");
-    const dia = String(data.getDate()).padStart(2, "0");
-    return `${ano}-${mes}-${dia}`;
+    var mes = String(data.getMonth() + 1);
+    var dia = String(data.getDate());
+    if (mes.length < 2) {
+        mes = "0" + mes;
+    }
+    if (dia.length < 2) {
+        dia = "0" + dia;
+    }
+    return data.getFullYear() + "-" + mes + "-" + dia;
 }
 
 function atualizarStatus(mensagem) {
@@ -80,30 +95,82 @@ function atualizarStatus(mensagem) {
     }
 }
 
-function formatarMeta(valor) {
-    return valor.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+function formatarDataHora(data) {
+    var dia = String(data.getDate());
+    var mes = String(data.getMonth() + 1);
+    var hora = String(data.getHours());
+    var minuto = String(data.getMinutes());
+    var segundo = String(data.getSeconds());
+
+    if (dia.length < 2) { dia = "0" + dia; }
+    if (mes.length < 2) { mes = "0" + mes; }
+    if (hora.length < 2) { hora = "0" + hora; }
+    if (minuto.length < 2) { minuto = "0" + minuto; }
+    if (segundo.length < 2) { segundo = "0" + segundo; }
+
+    return dia + "/" + mes + "/" + data.getFullYear() + ", " + hora + ":" + minuto + ":" + segundo;
+}
+
+function atualizarDataHora() {
+    if (!elementoDataHora) {
+        console.error("O elemento do relógio (#dataHora) não foi encontrado.");
+        return;
+    }
+
+    var agora = new Date();
+    elementoDataHora.textContent = formatarDataHora(agora);
+    elementoDataHora.setAttribute("datetime", agora.toISOString());
+}
+
+function adicionarClasse(elemento, nomeClasse) {
+    if ((" " + elemento.className + " ").indexOf(" " + nomeClasse + " ") === -1) {
+        elemento.className += " " + nomeClasse;
+    }
+}
+
+function removerClasse(elemento, nomeClasse) {
+    elemento.className = (" " + elemento.className + " ")
+        .replace(" " + nomeClasse + " ", " ")
+        .replace(/^\s+|\s+$/g, "");
+}
+
+function animarNumero(elemento) {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+    }
+
+    removerClasse(elemento, "animar-numero");
+    elemento.offsetWidth;
+    adicionarClasse(elemento, "animar-numero");
+    window.setTimeout(function () {
+        removerClasse(elemento, "animar-numero");
+    }, 700);
 }
 
 function inicializarEdicaoMeta() {
+    if (!botaoEditarMeta || !formularioMeta || !campoMeta || !statusMeta || !botaoCancelarMeta || !valorMeta) {
+        if (botaoEditarMeta) {
+            console.error("O formulário de edição da meta está incompleto.");
+        }
+        return;
+    }
+
     try {
-        const metaSalva = localStorage.getItem(chaveMetaSaresp);
+        var metaSalva = window.localStorage.getItem(chaveMetaSaresp);
         if (metaSalva !== null) {
-            const valorSalvo = Number(metaSalva);
-            if (!Number.isFinite(valorSalvo) || valorSalvo < 0 || valorSalvo > 10) {
+            var valorSalvo = Number(metaSalva);
+            if (isNaN(valorSalvo) || valorSalvo < 0 || valorSalvo > 10) {
                 throw new Error("O valor salvo deve estar entre 0 e 10.");
             }
-            valorMeta.textContent = formatarMeta(valorSalvo);
+            valorMeta.textContent = valorSalvo.toFixed(2).replace(".", ",");
             campoMeta.value = String(valorSalvo);
         }
     } catch (erro) {
-        statusMeta.textContent = `Não foi possível carregar a meta salva. ${erro.message}`;
+        statusMeta.textContent = "Não foi possível carregar a meta salva. " + erro.message;
         console.error("Falha ao carregar a meta SARESP.", erro);
     }
 
-    botaoEditarMeta.addEventListener("click", () => {
+    botaoEditarMeta.addEventListener("click", function () {
         formularioMeta.hidden = !formularioMeta.hidden;
         botaoEditarMeta.setAttribute("aria-expanded", String(!formularioMeta.hidden));
         if (!formularioMeta.hidden) {
@@ -111,103 +178,45 @@ function inicializarEdicaoMeta() {
         }
     });
 
-    document.getElementById("cancelarEdicaoMeta").addEventListener("click", () => {
+    botaoCancelarMeta.addEventListener("click", function () {
         formularioMeta.hidden = true;
         botaoEditarMeta.setAttribute("aria-expanded", "false");
         statusMeta.textContent = "";
         botaoEditarMeta.focus();
     });
 
-    formularioMeta.addEventListener("submit", (evento) => {
+    formularioMeta.addEventListener("submit", function (evento) {
         evento.preventDefault();
-        if (!campoMeta.reportValidity()) {
-            return;
-        }
-
-        const novoValor = Number(campoMeta.value);
-        if (!Number.isFinite(novoValor) || novoValor < 0 || novoValor > 10) {
+        var novoValor = Number(campoMeta.value);
+        if (isNaN(novoValor) || novoValor < 0 || novoValor > 10) {
             statusMeta.textContent = "Informe uma meta entre 0 e 10.";
             return;
         }
 
         try {
-            localStorage.setItem(chaveMetaSaresp, String(novoValor));
-            valorMeta.textContent = formatarMeta(novoValor);
+            window.localStorage.setItem(chaveMetaSaresp, String(novoValor));
+            valorMeta.textContent = novoValor.toFixed(2).replace(".", ",");
             statusMeta.textContent = "Meta SARESP atualizada e salva neste navegador.";
             formularioMeta.hidden = true;
             botaoEditarMeta.setAttribute("aria-expanded", "false");
             botaoEditarMeta.focus();
         } catch (erro) {
-            statusMeta.textContent = `Não foi possível salvar a meta. ${erro.message}`;
+            statusMeta.textContent = "Não foi possível salvar a meta. " + erro.message;
             console.error("Falha ao salvar a meta SARESP.", erro);
         }
     });
 }
 
-
-function atualizarDataHora() {
-    const agora = new Date();
-    elementoDataHora.dateTime = agora.toISOString();
-    elementoDataHora.textContent = formatadorDataHora.format(agora);
-}
-
-function animarNumero(elemento) {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        return;
-    }
-
-    elemento.animate(
-        [
-            { transform: "scale(0.85)", color: "#ffe45c" },
-            { transform: "scale(1.12)", color: "#fff2a8", offset: 0.6 },
-            { transform: "scale(1)", color: "#ffe45c" },
-        ],
-        { duration: 650, easing: "ease-out" },
-    );
-}
-
-async function obterFeriados(ano) {
-    if (feriadosPorAno.has(ano)) {
-        return feriadosPorAno.get(ano);
-    }
-
-    const resposta = await fetch(`https://brasilapi.com.br/api/feriados/v1/${ano}`);
-    if (!resposta.ok) {
-        throw new Error(`A API respondeu com o status ${resposta.status}.`);
-    }
-
-    const dados = await resposta.json();
-    if (!Array.isArray(dados)) {
-        throw new Error("A resposta da API de feriados está em formato inválido.");
-    }
-
-    const feriados = new Set(
-        dados
-            .filter((feriado) => feriado.type === "national" && /^\d{4}-\d{2}-\d{2}$/.test(feriado.date))
-            .map((feriado) => feriado.date),
-    );
-    feriadosPorAno.set(ano, feriados);
-    return feriados;
-}
-
-async function obterFeriadosDoPeriodo(dataFinal) {
-    const feriados = new Set();
-    for (let ano = dataInicial.getFullYear(); ano <= dataFinal.getFullYear(); ano++) {
-        const feriadosDoAno = await obterFeriados(ano);
-        feriadosDoAno.forEach((data) => feriados.add(data));
-    }
-    return feriados;
-}
-
-function contarDiasLetivos(dataFinal, feriados) {
-    const dataContada = new Date(dataInicial);
-    let total = 0;
+function contarDiasLetivos(dataFinal) {
+    var dataContada = new Date(dataInicial.getTime());
+    var feriadosNacionais = ["2026-11-02", "2026-11-20"];
+    var total = 0;
 
     while (dataContada < dataFinal) {
         dataContada.setDate(dataContada.getDate() + 1);
-        const diaDaSemana = dataContada.getDay();
-        const ehDiaUtil = diaDaSemana >= 1 && diaDaSemana <= 5;
-        const ehFeriado = feriados.has(formatarDataLocal(dataContada));
+        var diaDaSemana = dataContada.getDay();
+        var ehDiaUtil = diaDaSemana >= 1 && diaDaSemana <= 5;
+        var ehFeriado = feriadosNacionais.indexOf(formatarDataLocal(dataContada)) !== -1;
 
         if (ehDiaUtil && !ehFeriado) {
             total++;
@@ -217,36 +226,41 @@ function contarDiasLetivos(dataFinal, feriados) {
     return total;
 }
 
-async function atualizarContagem() {
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    if (hoje < dataInicial) {
-        atualizarStatus(`A contagem começa em ${new Intl.DateTimeFormat("pt-BR").format(dataInicial)}. São considerados feriados nacionais.`);
+function atualizarContagem() {
+    if (!secaoAvaliacoes || !dataInicial) {
+        atualizarStatus("Não foi possível iniciar a contagem: falta a data inicial.");
+        console.error("A seção de avaliações ou sua data inicial não foi encontrada.");
         return;
     }
 
-    atualizarStatus("Consultando feriados nacionais...");
+    var hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
 
-    try {
-        const feriados = await obterFeriadosDoPeriodo(hoje);
-        const diasLetivosDecorridos = contarDiasLetivos(hoje, feriados);
-
-        cartoes.forEach((cartao) => {
-            const elementoDias = cartao.querySelector("strong");
-            const diasIniciais = diasIniciaisPorCartao.get(cartao);
-            const novaContagem = String(Math.max(0, diasIniciais - diasLetivosDecorridos));
-            if (elementoDias.textContent !== novaContagem) {
-                elementoDias.textContent = novaContagem;
-                animarNumero(elementoDias);
-            }
-        });
-
-        atualizarStatus(`Contagem desde ${new Intl.DateTimeFormat("pt-BR").format(dataInicial)}: segunda a sexta, excluindo feriados nacionais. Sábados e domingos não são contados.`);
-    } catch (erro) {
-        atualizarStatus(`Não foi possível consultar os feriados nacionais. Os valores iniciais foram mantidos. ${erro.message}`);
-        console.error("Falha ao atualizar a contagem de dias letivos.", erro);
+    if (hoje < dataInicial) {
+        atualizarStatus("A contagem começa em " + formatarDataHora(dataInicial).split(",")[0] + ".");
+        return;
     }
+
+    var diasLetivosDecorridos = contarDiasLetivos(hoje);
+    for (var indice = 0; indice < cartoes.length; indice++) {
+        var elementoDias = cartoes[indice].querySelector("strong");
+        if (!elementoDias) {
+            console.error("Um cartão de avaliação está sem o número de dias.");
+            continue;
+        }
+
+        var novaContagem = String(Math.max(0, diasIniciaisPorCartao[indice] - diasLetivosDecorridos));
+        if (elementoDias.textContent !== novaContagem) {
+            elementoDias.textContent = novaContagem;
+            animarNumero(elementoDias);
+        }
+    }
+
+    atualizarStatus("Contagem atualizada automaticamente: dias úteis de segunda a sexta, sem feriados nacionais. A contagem atualiza a cada minuto.");
+}
+
+if (secaoAvaliacoes && secaoAvaliacoes.getAttribute("data-data-inicial")) {
+    dataInicial = criarDataLocal(secaoAvaliacoes.getAttribute("data-data-inicial"));
 }
 
 animarLetrasTitulo();
@@ -255,4 +269,5 @@ inicializarEdicaoMeta();
 atualizarDataHora();
 atualizarContagem();
 window.setInterval(atualizarDataHora, 1000);
-window.setInterval(atualizarContagem, 60_000);
+window.setInterval(atualizarContagem, 60000);
+
